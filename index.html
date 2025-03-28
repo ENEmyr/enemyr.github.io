@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" class="transition duration-500">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🎰 Military Gacha!</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    };
+  </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-500 flex items-center justify-center min-h-screen p-6 text-gray-800 dark:text-gray-200">
+  <div class="w-full max-w-md space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md transition duration-500">
+    <!-- Title & Control Buttons -->
+    <div class="flex justify-between items-center">
+      <h1 class="text-2xl font-bold">🎰 Military Gacha!</h1>
+      <div class="flex space-x-2">
+        <button id="resetButton" class="bg-red-300 dark:bg-red-600 text-sm px-3 py-1 rounded hover:scale-105 transition">Reset</button>
+        <button id="darkToggle" class="bg-gray-300 dark:bg-gray-700 text-sm px-3 py-1 rounded hover:scale-105 transition">Toggle 🌙</button>
+      </div>
+    </div>
+
+    <!-- Input section -->
+    <div class="grid grid-cols-1 gap-3">
+      <div>
+        <label for="redTotalInput" class="block font-medium mb-1">Total Red Tickets:</label>
+        <input type="number" id="redTotalInput" min="0" value="5"
+               class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+      </div>
+      <div>
+        <label for="blackTotalInput" class="block font-medium mb-1">Total Black Tickets:</label>
+        <input type="number" id="blackTotalInput" min="0" value="5"
+               class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:bg-gray-700 dark:border-gray-600 dark:text-white"/>
+      </div>
+    </div>
+
+    <!-- Boxes -->
+    <div class="grid grid-cols-2 gap-4 mt-4">
+      <div id="redBox" class="cursor-pointer bg-red-500 text-white rounded-lg h-32 flex items-center justify-center text-center text-lg font-bold transition transform hover:scale-105 duration-300">
+        Red: 0<br>0%
+      </div>
+      <div id="blackBox" class="cursor-pointer bg-black text-white rounded-lg h-32 flex items-center justify-center text-center text-lg font-bold transition transform hover:scale-105 duration-300">
+        Black: 0<br>0%
+      </div>
+    </div>
+
+    <!-- Current remaining -->
+    <div class="text-center font-medium mt-4">
+      Remaining: <span id="remainingCount">0</span>
+    </div>
+  </div>
+
+  <script>
+    const redTotalInput = document.getElementById('redTotalInput');
+    const blackTotalInput = document.getElementById('blackTotalInput');
+    const redBox = document.getElementById('redBox');
+    const blackBox = document.getElementById('blackBox');
+    const remainingCount = document.getElementById('remainingCount');
+    const darkToggle = document.getElementById('darkToggle');
+    const resetButton = document.getElementById('resetButton');
+    const html = document.documentElement;
+
+    let totalRed = 5;
+    let totalBlack = 5;
+    let pulledRed = 0;
+    let pulledBlack = 0;
+
+    function updateDisplay() {
+      const remainingRed = totalRed - pulledRed;
+      const remainingBlack = totalBlack - pulledBlack;
+      const remainingTotal = remainingRed + remainingBlack;
+
+      const redProb = remainingTotal > 0 ? ((remainingRed / remainingTotal) * 100).toFixed(2) : 0;
+      const blackProb = remainingTotal > 0 ? ((remainingBlack / remainingTotal) * 100).toFixed(2) : 0;
+
+      redBox.innerHTML = `Red: ${pulledRed}<br>${redProb}%`;
+      blackBox.innerHTML = `Black: ${pulledBlack}<br>${blackProb}%`;
+
+      remainingCount.textContent = remainingTotal;
+
+      redBox.classList.add('scale-105');
+      blackBox.classList.add('scale-105');
+      setTimeout(() => {
+        redBox.classList.remove('scale-105');
+        blackBox.classList.remove('scale-105');
+      }, 150);
+    }
+
+    function resetPulls() {
+      pulledRed = 0;
+      pulledBlack = 0;
+      updateDisplay();
+    }
+
+    function updateFromInputs() {
+      totalRed = parseInt(redTotalInput.value) || 0;
+      totalBlack = parseInt(blackTotalInput.value) || 0;
+      resetPulls();
+    }
+
+    redBox.addEventListener('click', () => {
+      const remainingRed = totalRed - pulledRed;
+      const remainingTotal = (totalRed + totalBlack) - (pulledRed + pulledBlack);
+      if (remainingRed > 0 && remainingTotal > 0) {
+        pulledRed++;
+        updateDisplay();
+      }
+    });
+
+    blackBox.addEventListener('click', () => {
+      const remainingBlack = totalBlack - pulledBlack;
+      const remainingTotal = (totalRed + totalBlack) - (pulledRed + pulledBlack);
+      if (remainingBlack > 0 && remainingTotal > 0) {
+        pulledBlack++;
+        updateDisplay();
+      }
+    });
+
+    redTotalInput.addEventListener('input', updateFromInputs);
+    blackTotalInput.addEventListener('input', updateFromInputs);
+
+    darkToggle.addEventListener('click', () => {
+      html.classList.toggle('dark');
+    });
+
+    resetButton.addEventListener('click', resetPulls);
+
+    // Initialize
+    updateFromInputs();
+  </script>
+</body>
+</html>
