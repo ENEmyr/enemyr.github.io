@@ -27,12 +27,12 @@
     <div class="grid grid-cols-1 gap-3">
       <div>
         <label for="redTotalInput" class="block font-medium mb-1">Total Red Tickets:</label>
-        <input type="number" id="redTotalInput" min="0" value="5"
+        <input type="number" id="redTotalInput" min="0" placeholder="ใส่ใบแดง"
           class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-400 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
       </div>
       <div>
         <label for="blackTotalInput" class="block font-medium mb-1">Total Black Tickets:</label>
-        <input type="number" id="blackTotalInput" min="0" value="5"
+        <input type="number" id="blackTotalInput" min="0" placeholder="กรอกใบดำ"
           class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
       </div>
     </div>
@@ -40,10 +40,10 @@
     <!-- Gacha Boxes -->
     <div class="grid grid-cols-2 gap-4 mt-4">
       <div id="redBox" class="cursor-pointer bg-red-500 text-white rounded-lg h-32 flex items-center justify-center text-center text-lg font-bold transition transform hover:scale-105 duration-300">
-        Red: 0<br>0%
+        Click!
       </div>
       <div id="blackBox" class="cursor-pointer bg-black text-white rounded-lg h-32 flex items-center justify-center text-center text-lg font-bold transition transform hover:scale-105 duration-300">
-        Black: 0<br>0%
+        Click!
       </div>
     </div>
 
@@ -85,27 +85,33 @@
     const closeModal = document.getElementById('closeModal');
     const html = document.documentElement;
 
-    let totalRed = 5;
-    let totalBlack = 5;
+    let totalRed = 0;
+    let totalBlack = 0;
     let pulledRed = 0;
     let pulledBlack = 0;
     let hasCelebrated = false;
     let blackModalShown = false;
 
     function updateDisplay() {
+      totalRed = parseInt(redTotalInput.value) || 0;
+      totalBlack = parseInt(blackTotalInput.value) || 0;
       const remainingRed = totalRed - pulledRed;
       const remainingBlack = totalBlack - pulledBlack;
       const remainingTotal = remainingRed + remainingBlack;
 
-      const redProb = remainingTotal > 0 ? ((remainingRed / remainingTotal) * 100).toFixed(2) : 0;
-      const blackProb = remainingTotal > 0 ? ((remainingBlack / remainingTotal) * 100).toFixed(2) : 0;
+      let redProb = "Click!";
+      let blackProb = "Click!";
 
-      redBox.innerHTML = `Red: ${pulledRed}<br>${redProb}%`;
-      blackBox.innerHTML = `Black: ${pulledBlack}<br>${blackProb}%`;
+      if (remainingTotal > 0 && totalRed > 0 && totalBlack > 0) {
+        redProb = ((remainingRed / remainingTotal) * 100).toFixed(2) + "%";
+        blackProb = ((remainingBlack / remainingTotal) * 100).toFixed(2) + "%";
+      }
+
+      redBox.innerHTML = `Red: ${pulledRed}<br>${redProb}`;
+      blackBox.innerHTML = `Black: ${pulledBlack}<br>${blackProb}`;
       remainingCount.textContent = remainingTotal;
 
-      // 🎉 Red win
-      if (redProb === "100.00" && !hasCelebrated) {
+      if (redProb === "100.00%" && !hasCelebrated) {
         hasCelebrated = true;
         victorySound.currentTime = 0;
         victorySound.play();
@@ -116,14 +122,12 @@
         });
       }
 
-      // ⚠️ Black modal
-      if (blackProb === "100.00" && !blackModalShown) {
+      if (blackProb === "100.00%" && !blackModalShown) {
         blackModalShown = true;
         blackModal.classList.remove("hidden");
         blackModal.classList.add("flex");
       }
 
-      // Animate boxes
       redBox.classList.add('scale-105');
       blackBox.classList.add('scale-105');
       setTimeout(() => {
@@ -141,16 +145,12 @@
       updateDisplay();
     }
 
-    function updateFromInputs() {
+    redBox.addEventListener('click', () => {
       totalRed = parseInt(redTotalInput.value) || 0;
       totalBlack = parseInt(blackTotalInput.value) || 0;
-      resetPulls();
-    }
-
-    redBox.addEventListener('click', () => {
+      if (pulledRed + pulledBlack >= totalRed + totalBlack) return;
       const remainingRed = totalRed - pulledRed;
-      const remainingTotal = (totalRed + totalBlack) - (pulledRed + pulledBlack);
-      if (remainingRed > 0 && remainingTotal > 0) {
+      if (remainingRed > 0) {
         pulledRed++;
         redSound.currentTime = 0;
         redSound.play();
@@ -159,9 +159,11 @@
     });
 
     blackBox.addEventListener('click', () => {
+      totalRed = parseInt(redTotalInput.value) || 0;
+      totalBlack = parseInt(blackTotalInput.value) || 0;
+      if (pulledRed + pulledBlack >= totalRed + totalBlack) return;
       const remainingBlack = totalBlack - pulledBlack;
-      const remainingTotal = (totalRed + totalBlack) - (pulledRed + pulledBlack);
-      if (remainingBlack > 0 && remainingTotal > 0) {
+      if (remainingBlack > 0) {
         pulledBlack++;
         blackSound.currentTime = 0;
         blackSound.play();
@@ -169,15 +171,15 @@
       }
     });
 
-    redTotalInput.addEventListener('input', updateFromInputs);
-    blackTotalInput.addEventListener('input', updateFromInputs);
+    redTotalInput.addEventListener('input', updateDisplay);
+    blackTotalInput.addEventListener('input', updateDisplay);
     darkToggle.addEventListener('click', () => html.classList.toggle('dark'));
     resetButton.addEventListener('click', resetPulls);
     closeModal.addEventListener('click', () => {
       blackModal.classList.add("hidden");
     });
 
-    updateFromInputs();
+    updateDisplay();
   </script>
 </body>
 </html>
