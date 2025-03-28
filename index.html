@@ -10,6 +10,8 @@
       darkMode: 'class'
     };
   </script>
+  <!-- Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 transition-colors duration-500 flex items-center justify-center min-h-screen p-6 text-gray-800 dark:text-gray-200">
   <div class="w-full max-w-md space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md transition duration-500">
@@ -50,6 +52,11 @@
     <div class="text-center font-medium mt-4">
       Remaining: <span id="remainingCount">0</span>
     </div>
+
+    <!-- Sound effects -->
+    <audio id="redSound" src="https://enemyr.github.io/press_btn.mp3"></audio>
+    <audio id="blackSound" src="https://enemyr.github.io/press_btn.mp3"></audio>
+    <audio id="victorySound" src="https://enemyr.github.io/red_confirm.wav"></audio>
   </div>
 
   <script>
@@ -62,10 +69,15 @@
     const resetButton = document.getElementById('resetButton');
     const html = document.documentElement;
 
+    const redSound = document.getElementById('redSound');
+    const blackSound = document.getElementById('blackSound');
+    const victorySound = document.getElementById('victorySound');
+
     let totalRed = 5;
     let totalBlack = 5;
     let pulledRed = 0;
     let pulledBlack = 0;
+    let hasCelebrated = false;
 
     function updateDisplay() {
       const remainingRed = totalRed - pulledRed;
@@ -77,8 +89,19 @@
 
       redBox.innerHTML = `Red: ${pulledRed}<br>${redProb}%`;
       blackBox.innerHTML = `Black: ${pulledBlack}<br>${blackProb}%`;
-
       remainingCount.textContent = remainingTotal;
+
+      // Confetti + Victory Sound
+      if (redProb === "100.00" && !hasCelebrated && remainingTotal > 0) {
+        hasCelebrated = true;
+        victorySound.currentTime = 0;
+        victorySound.play();
+        confetti({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.6 }
+        });
+      }
 
       redBox.classList.add('scale-105');
       blackBox.classList.add('scale-105');
@@ -91,6 +114,7 @@
     function resetPulls() {
       pulledRed = 0;
       pulledBlack = 0;
+      hasCelebrated = false;
       updateDisplay();
     }
 
@@ -105,6 +129,8 @@
       const remainingTotal = (totalRed + totalBlack) - (pulledRed + pulledBlack);
       if (remainingRed > 0 && remainingTotal > 0) {
         pulledRed++;
+        redSound.currentTime = 0;
+        redSound.play();
         updateDisplay();
       }
     });
@@ -114,17 +140,15 @@
       const remainingTotal = (totalRed + totalBlack) - (pulledRed + pulledBlack);
       if (remainingBlack > 0 && remainingTotal > 0) {
         pulledBlack++;
+        blackSound.currentTime = 0;
+        blackSound.play();
         updateDisplay();
       }
     });
 
     redTotalInput.addEventListener('input', updateFromInputs);
     blackTotalInput.addEventListener('input', updateFromInputs);
-
-    darkToggle.addEventListener('click', () => {
-      html.classList.toggle('dark');
-    });
-
+    darkToggle.addEventListener('click', () => html.classList.toggle('dark'));
     resetButton.addEventListener('click', resetPulls);
 
     // Initialize
