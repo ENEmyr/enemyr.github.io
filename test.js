@@ -1,4 +1,4 @@
-class Test {
+export class Test {
   constructor(x) {
     this._x = x;
   }
@@ -14,6 +14,6 @@ class Test {
   }
 }
 
-function pow(x, y) {
+export function pow(x, y) {
   return Math.pow(x, y);
 }
